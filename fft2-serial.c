@@ -44,6 +44,48 @@ void fft(double complex *x, double complex *X, int n, int s){
 		}
 	}
 }
+
+int reverseBin(int i, int K){
+	int j = 0;
+
+	for (int k=K-1; k>-1; k--){
+		j += i / (1<<k) * (1<<(K-1-k));
+		i %= 1<<k;
+	}
+	return j;
+}
+
+
+	
+
+void fft_iter(double complex *x, double complex *X){
+	
+	int logN = 0;
+	int n = N;
+	while (n >>= 1) ++logN;
+
+	for (int i = 0; i < N; ++i)
+	{
+		X[i] = x[reverseBin(i,logN)];
+	}
+
+	for (int i = 1; i < logN+1; ++i)
+	{
+		int m = 1<<i;
+		double complex p = cexp(-2 * I * PI / m);
+		for (int k = 0; k < N; k+=m)
+		{
+			for (int j = 0; j < m/2; ++j)
+			{
+				double complex u = X[k+j];
+				double complex v = cpow(p, j) * X[k+j+m/2];
+				X[k+j] = u + v;
+				X[k+j+m/2] = u - v;
+			}
+		}
+	}
+}
+
 int main(int argc, char const *argv[])
 {
 	/* code */
@@ -63,8 +105,8 @@ int main(int argc, char const *argv[])
 	}
 
 	//fourier(x, X);
-	fft(x, X, N, 1);
-
+	//fft(x, X, N, 1);
+	fft_iter(x,X);
 
 	FILE *fichier = fopen("sol.txt", "w");
 	fprintf(fichier,"");
