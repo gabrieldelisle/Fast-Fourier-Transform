@@ -3,19 +3,28 @@
 #include <complex.h>
 
 #define PI 3.141592653589793
-#define N 512
+#define f square
 
-double complex f(double t){
-	if ((int)creal(t)%2 == 0){
-		return 1.;
-	}
-	else{
-		return -1.;
-	}
+
+double complex square(double t) {
+    if ((int) creal(t) % 2 == 0) {
+        return 1.;
+    } else {
+        return -1.;
+    }
+}
+
+double complex triangle(double t) {
+    int t0 = (int) creal(t);
+    if (t0 % 2 == 0) {
+        return 2*(t-t0-0.5);
+    } else {
+        return -2*(t-t0-0.5);
+    }
 }
 
 
-void fourier(double complex *x, double complex *X){
+void fourier(double complex *x, double complex *X, int N){
 	for (int k = 0; k < N; ++k)
 	{
 		X[k] = 0;
@@ -58,7 +67,7 @@ int reverseBin(int i, int K){
 
 	
 
-void fft_iter(double complex *x, double complex *X){
+void fft_iter(double complex *x, double complex *X, int N){
 	
 	int logN = 0;
 	int n = N;
@@ -88,9 +97,18 @@ void fft_iter(double complex *x, double complex *X){
 
 int main(int argc, char const *argv[])
 {
+	int N;
+	/* Find problem size N from command line */
+	if (argc < 2) {
+	  fprintf(stdout, "No size N given\n");
+	  exit(1);
+	}
+	N = atoi(argv[1]);
 	/* code */
-	double complex x[N];
-	double complex X[N];
+	double complex * x;
+	double complex * X;
+	X = (double complex *) malloc(2 * N * sizeof(double complex));
+   x = (double complex *) malloc(N * sizeof(double complex));
 
 	double t[N];
 	double A = 0.;
@@ -104,9 +122,9 @@ int main(int argc, char const *argv[])
 		x[i] = f(t[i]);
 	}
 
-	//fourier(x, X);
+	//fourier(x, X, N);
 	//fft(x, X, N, 1);
-	fft_iter(x,X);
+	fft_iter(x,X,N);
 
 	FILE *fichier = fopen("sol.txt", "w");
 	fprintf(fichier,"");
