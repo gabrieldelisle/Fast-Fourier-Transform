@@ -70,17 +70,19 @@ int reverseBin(int i, int K){
 void fft_iter(double complex *x, double complex *X, int N){
 	
 	int logN = 0;
-	int n = N;
-	while (n >>= 1) ++logN;
-
-	for (int i = 0; i < N; ++i)
 	{
+		int n = N;
+		while (n >>= 1) ++logN;
+	}
+	
+	for (int i = 0; i < N; ++i) {
 		X[i] = x[reverseBin(i,logN)];
 	}
 
+	int m = 1;
 	for (int i = 1; i < logN+1; ++i)
 	{
-		int m = 1<<i;
+		m <<= 1;
 		double complex p = cexp(-2 * I * PI / m);
 		for (int k = 0; k < N; k+=m)
 		{
