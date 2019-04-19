@@ -29,8 +29,8 @@ int bitflip(int nb, int bit_indice) {
 
 int reverseBin(int i, int K) {
     int j = 0;
-
-    for (int k = K - 1; k > -1; k--) {
+    int k;
+    for (k = K - 1; k > -1; k--) {
         j += i / (1 << k) * (1 << (K - 1 - k));
         i %= 1 << k;
     }
@@ -94,6 +94,8 @@ int main(int argc, char **argv) {
 
     int *origin; //global index from the value in x
     origin = (int *) malloc(L * sizeof(int));
+    int *origin2;
+    origin2 = (int *) malloc(L * sizeof(int));
 
     double complex *X;
     X = (double complex *) malloc(2 * L * sizeof(double complex));
@@ -114,14 +116,25 @@ int main(int argc, char **argv) {
     }
     free(p_indices);
 
+
+
     MPI_Alltoall(&X[0], L/P, MPI_DOUBLE_COMPLEX, &X[L], L/P, MPI_DOUBLE_COMPLEX, MPI_COMM_WORLD);
-    MPI_Alltoall(&origin[0], L/P, MPI_INT, &origin[0], L/P, MPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(&origin[0], L/P, MPI_INT, &origin2[0], L/P, MPI_INT, MPI_COMM_WORLD);
    
     //reexchange values using their global index
-    for (int i = 0; i < L; ++i) {
-        X[i] = X[L + reverseBin(origin[i], logN) % L];
+    for (i = 0; i < L; ++i) {
+        X[i] = X[L + reverseBin(origin2[i], logN) % L];
     }
     free(origin);
+    free(origin2);
+    // printf("\nbefore: \n");
+    // for (i = 0; i < L; ++i) {
+    //     printf("%d: %f \n", L * p + i, (float)X[i]);
+    // }
+    // printf("\nafter: \n");
+    // for (i = 0; i < L; ++i) {
+    //     printf("%d: %f \n", L * p + i, (float)x[i]);
+    // }
 
     /* iterative fft algorithm */
     double complex u, v, omega;
@@ -132,7 +145,7 @@ int main(int argc, char **argv) {
 
         // case 1: the values needed are on another processor
         if(m/2>=L){
-            p_other = bitflip(L * p, i-1) / L;
+            p_other = ( (L*p) ^ (m/2) ) / L; 
 
             if (p > p_other) {
                 MPI_Recv(&X[L], L, MPI_DOUBLE_COMPLEX, p_other, tag, MPI_COMM_WORLD, &status);
@@ -148,10 +161,10 @@ int main(int argc, char **argv) {
                 {
                     if(p < p_other){
                         u = X[k+j];
-                        v = cpow(omega, j) * X[k+j+L];
+                        v = cpow(omega, j+(L*p)%(m/2) ) * X[k+j+L];
                         X[k+j] = u + v;
                     }else{
-                        v = cpow(omega, j) * X[k+j];
+                        v = cpow(omega, j+(L*p)%(m/2) ) * X[k+j];
                         u = X[k+j+L];
                         X[k+j] = u - v;
                     }

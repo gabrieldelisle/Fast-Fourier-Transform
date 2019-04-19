@@ -25,10 +25,11 @@ double complex triangle(double t) {
 
 
 void fourier(double complex *x, double complex *X, int N){
-	for (int k = 0; k < N; ++k)
+	int k, n;
+	for (k = 0; k < N; ++k)
 	{
 		X[k] = 0;
-		for (int n = 0; n < N; ++n)
+		for (n = 0; n < N; ++n)
 		{
 			X[k] += x[n] * cexp(-2 * I * PI * n * k / N);
 		}
@@ -43,7 +44,8 @@ void fft(double complex *x, double complex *X, int n, int s){
 		fft(x, X, n/2, 2*s);
 		fft(x + s, X + n/2, n/2, 2*s);
 
-		for (int k = 0; k < n/2; ++k)
+		int k;
+		for (k = 0; k < n/2; ++k)
 		{
 			double complex p = cexp(-2 * I * PI * k / n);
 			double complex temp = X[k];
@@ -56,8 +58,8 @@ void fft(double complex *x, double complex *X, int n, int s){
 
 int reverseBin(int i, int K){
 	int j = 0;
-
-	for (int k=K-1; k>-1; k--){
+	int k;
+	for (k = K-1; k > -1; k--){
 		j += i / (1<<k) * (1<<(K-1-k));
 		i %= 1<<k;
 	}
@@ -67,29 +69,31 @@ int reverseBin(int i, int K){
 
 	
 
-void fft_iter(double complex *x, double complex *X, int N){
-	
+void fft_iter(double complex *x, double complex *X, int N)
+{	
 	int logN = 0;
 	{
 		int n = N;
 		while (n >>= 1) ++logN;
 	}
-	
-	for (int i = 0; i < N; ++i) {
+
+	int i, j, k;
+	for (i = 0; i < N; ++i) {
 		X[i] = x[reverseBin(i,logN)];
 	}
 
 	int m = 1;
-	for (int i = 1; i < logN+1; ++i)
+	double complex p, u, v;
+	for (i = 1; i < logN+1; ++i)
 	{
 		m <<= 1;
-		double complex p = cexp(-2 * I * PI / m);
-		for (int k = 0; k < N; k+=m)
+		p = cexp(-2 * I * PI / m);
+		for (k = 0; k < N; k+=m)
 		{
-			for (int j = 0; j < m/2; ++j)
+			for (j = 0; j < m/2; ++j)
 			{
-				double complex u = X[k+j];
-				double complex v = cpow(p, j) * X[k+j+m/2];
+				u = X[k+j];
+				v = cpow(p, j) * X[k+j+m/2];
 				X[k+j] = u + v;
 				X[k+j+m/2] = u - v;
 			}
@@ -99,7 +103,7 @@ void fft_iter(double complex *x, double complex *X, int N){
 
 int main(int argc, char const *argv[])
 {
-	int N;
+	int N, i;
 	/* Find problem size N from command line */
 	if (argc < 2) {
 	  fprintf(stdout, "No size N given\n");
@@ -117,7 +121,7 @@ int main(int argc, char const *argv[])
 	double B = 10.;
 	double dt = (B-A)/N;
 
-	for (int i = 0; i < N; ++i)
+	for (i = 0; i < N; ++i)
 	{
 
 		t[i] = A + dt*i;
@@ -133,7 +137,7 @@ int main(int argc, char const *argv[])
 	fclose(fichier);
 
 	fichier = fopen("sol.txt", "a");
-	for (int i = 0; i < N; ++i)
+	for (i = 0; i < N; ++i)
 	{
 		fprintf(fichier, "%f;%f;%f\n", t[i], (double)(x[i]), cabs(X[i]));
 	}
