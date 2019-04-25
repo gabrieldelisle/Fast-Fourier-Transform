@@ -127,14 +127,7 @@ int main(int argc, char **argv) {
     }
     free(origin);
     free(origin2);
-    // printf("\nbefore: \n");
-    // for (i = 0; i < L; ++i) {
-    //     printf("%d: %f \n", L * p + i, (float)X[i]);
-    // }
-    // printf("\nafter: \n");
-    // for (i = 0; i < L; ++i) {
-    //     printf("%d: %f \n", L * p + i, (float)x[i]);
-    // }
+
 
     /* iterative fft algorithm */
     double complex u, v, omega;
@@ -157,7 +150,7 @@ int main(int argc, char **argv) {
 
             for (k = 0; k < L; k+=m)
             {
-                for (j = 0; j < m/2; ++j)
+                for (j = 0; j < L; ++j)
                 {
                     if(p < p_other){
                         u = X[k+j];
@@ -216,7 +209,6 @@ int main(int argc, char **argv) {
         MPI_Send(&notify, 1, MPI_INT, p+1, tag, MPI_COMM_WORLD);
     }
 
-    printf("Process %d over\n", p);
 //    /* That's it */
     MPI_Finalize();
     exit(0);
